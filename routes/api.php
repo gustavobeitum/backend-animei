@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\Auth\NewPasswordController;
+use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -27,6 +29,8 @@ Route::middleware('auth:sanctum')->group(function(){
     Route::delete('/user/{id}', [UserController::class, 'destroy']);
 
     Route::delete('/logout', [AuthenticatedSessionController::class, 'destroy']);
+    
+    Route::post('/reset-password', [NewPasswordController::class, 'store']);
 });
 
 Route::get('/user', [UserController::class, 'index']);
@@ -36,3 +40,5 @@ Route::get('/user/{id}', [UserController::class, 'show']);
 Route::post('/user', [UserController::class, 'store']);
 
 Route::post('/login', [AuthenticatedSessionController::class, 'store']);
+
+Route::post('/forgot-password', [PasswordResetLinkController::class, 'store']);
