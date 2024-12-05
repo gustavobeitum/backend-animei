@@ -41,8 +41,9 @@ class UserController extends Controller
             'email' => $request->email,
             'password' => bcrypt($request->password)
         ]);
+        $token = $user->createToken('auth_token')->plainTextToken;
 
-        return response()->json(['data' => $user], Response::HTTP_CREATED);
+        return response()->json(['data' => $user, 'token' => $token], Response::HTTP_CREATED);
     }
 
      /**
