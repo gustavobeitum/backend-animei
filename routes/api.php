@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\Auth\EmailVerificatedController;
+use App\Http\Controllers\Auth\EmailVerificationWithCodeController;
 use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\UserController;
@@ -31,6 +33,10 @@ Route::middleware('auth:sanctum')->group(function(){
     Route::delete('/logout', [AuthenticatedSessionController::class, 'destroy']);
     
     Route::post('/reset-password', [NewPasswordController::class, 'store']);
+
+    Route::post('/request-code-email', [EmailVerificationWithCodeController::class, 'request_code_email']);
+
+    Route::post('/verification-code-email', [EmailVerificatedController::class, 'verification_email']);
 });
 
 Route::get('/user', [UserController::class, 'index']);
