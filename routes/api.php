@@ -1,10 +1,12 @@
 <?php
 
+use App\Http\Controllers\AnswerController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\EmailVerificatedController;
 use App\Http\Controllers\Auth\EmailVerificationWithCodeController;
 use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
+use App\Http\Controllers\CommentController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
@@ -34,6 +36,15 @@ Route::middleware('auth:sanctum')->group(function(){
         Route::post('/post', [PostController::class, 'store']);
         Route::put('/post/{id}', [PostController::class, 'update']);
         Route::delete('/post/{id}', [PostController::class, 'destroy']);
+
+        Route::post('/comment', [CommentController::class, 'store']);
+        Route::put('/comment/{id}', [CommentController::class, 'update']);
+        Route::delete('/comment/{id}', [CommentController::class, 'destroy']);
+
+        
+        Route::post('/answer', [AnswerController::class, 'store']);
+        Route::put('/answer/{id}', [AnswerController::class, 'update']);
+        Route::delete('/answer/{id}', [AnswerController::class, 'destroy']);
     });
 
     Route::put('/user/{id}', [UserController::class, 'update']);
@@ -48,7 +59,11 @@ Route::middleware('auth:sanctum')->group(function(){
     Route::get('/post', [PostController::class, 'index']);
     Route::get('/post/{id}', [PostController::class, 'show']);
 
+    Route::get('/comment', [CommentController::class, 'index']);
+    Route::get('/comment/{id}', [CommentController::class, 'show']);
 
+    Route::get('/answer', [AnswerController::class, 'index']);
+    Route::get('/answer/{id}', [AnswerController::class, 'show']);
 });
 
 Route::get('/user', [UserController::class, 'index']);
