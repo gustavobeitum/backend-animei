@@ -7,6 +7,7 @@ use App\Http\Controllers\Auth\EmailVerificationWithCodeController;
 use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\CommentController;
+use App\Http\Controllers\LikeController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
@@ -37,6 +38,8 @@ Route::middleware('auth:sanctum')->group(function(){
         Route::put('/post/{id}', [PostController::class, 'update']);
         Route::delete('/post/{id}', [PostController::class, 'destroy']);
 
+        Route::post('/like/{post_id}', [LikeController::class, 'LikePost']);
+
         Route::post('/comment', [CommentController::class, 'store']);
         Route::put('/comment/{id}', [CommentController::class, 'update']);
         Route::delete('/comment/{id}', [CommentController::class, 'destroy']);
@@ -58,6 +61,8 @@ Route::middleware('auth:sanctum')->group(function(){
 
     Route::get('/post', [PostController::class, 'index']);
     Route::get('/post/{id}', [PostController::class, 'show']);
+
+    Route::get('/countLikes/{post_id}', [LikeController::class, 'likeCount']);
 
     Route::get('/comment', [CommentController::class, 'index']);
     Route::get('/comment/{id}', [CommentController::class, 'show']);
