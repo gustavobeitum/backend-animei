@@ -5,6 +5,7 @@ use App\Http\Controllers\Auth\EmailVerificatedController;
 use App\Http\Controllers\Auth\EmailVerificationWithCodeController;
 use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
+use App\Http\Controllers\PostController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -25,26 +26,34 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 Route::middleware('auth:sanctum')->group(function(){
+    
+    Route::middleware('check')->group(function(){
+
+        Route::delete('/user/{id}', [UserController::class, 'destroy']);
+
+        Route::post('/post', [PostController::class, 'store']);
+        Route::put('/post/{id}', [PostController::class, 'update']);
+        Route::delete('/post/{id}', [PostController::class, 'destroy']);
+    });
 
     Route::put('/user/{id}', [UserController::class, 'update']);
 
-    Route::delete('/user/{id}', [UserController::class, 'destroy']);
-
     Route::delete('/logout', [AuthenticatedSessionController::class, 'destroy']);
-    
+
     Route::post('/reset-password', [NewPasswordController::class, 'store']);
 
     Route::post('/request-code-email', [EmailVerificationWithCodeController::class, 'request_code_email']);
-
     Route::post('/verification-code-email', [EmailVerificatedController::class, 'verification_email']);
+
+    Route::get('/post', [PostController::class, 'index']);
+    Route::get('/post/{id}', [PostController::class, 'show']);
+
+
 });
 
 Route::get('/user', [UserController::class, 'index']);
-
 Route::get('/user/{id}', [UserController::class, 'show']);
-
 Route::post('/user', [UserController::class, 'store']);
 
 Route::post('/login', [AuthenticatedSessionController::class, 'store']);
-
 Route::post('/forgot-password', [PasswordResetLinkController::class, 'store']);
