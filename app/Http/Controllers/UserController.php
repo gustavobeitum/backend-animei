@@ -120,7 +120,9 @@ class UserController extends Controller
         if ($user->image) {
             Storage::disk('public')->delete($user->image);
         }
-
+        $user->posts()->delete();
+        $user->comments()->delete();
+        $user->answers()->delete();
         $deleted = $user->delete();
 
         if ($deleted) {
