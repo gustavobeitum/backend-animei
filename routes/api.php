@@ -10,6 +10,7 @@ use App\Http\Controllers\CommentController;
 use App\Http\Controllers\LikeCommentController;
 use App\Http\Controllers\LikeController;
 use App\Http\Controllers\PostController;
+use App\Http\Controllers\SearchPostController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -68,6 +69,8 @@ Route::middleware('auth:sanctum')->group(function(){
     Route::get('/countLikes-post/{post_id}', [LikeController::class, 'likeCount']);
 
     Route::get('/countLikes-comment/{comment_id}', [LikeCommentController::class, 'likeCountComment']);
+
+    Route::get('/search-post', [SearchPostController::class, 'searchPost']);
 
     Route::get('/comment', [CommentController::class, 'index']);
     Route::get('/comment/{comment_id}', [CommentController::class, 'show']);
