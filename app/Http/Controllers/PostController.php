@@ -35,7 +35,7 @@ class PostController extends Controller
             'user_id' => ['exists:users,id'],
             'text' => ['string'],
             'image' => ['file', 'image'],
-            'type' => ['required']
+            'type' => ['required', 'in:news, cancellations,curiosities, updates']
         ]);
         //Verifica se a imagem foi enviada, se não foi enviada salva como null o campo
         if ($request->hasFile('image')) {
