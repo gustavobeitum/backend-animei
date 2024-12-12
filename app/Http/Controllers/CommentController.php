@@ -98,6 +98,7 @@ class CommentController extends Controller
             return response()->json(['Erro' => 'Impossível deletar, comentário não encontrado'], Response::HTTP_NO_CONTENT);
         }
         if ($request->user()->id == $comment->user_id) {
+            $comment->likesComment()->delete();
             $comment->answers()->delete();
             $comment->delete();
             return response()->json(['messagem' => 'Comentário deletado com sucesso']);

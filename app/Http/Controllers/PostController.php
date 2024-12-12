@@ -128,6 +128,7 @@ class PostController extends Controller
             if ($post->image) {
                 Storage::disk('public')->delete($post->image);
             }
+            $post->likes()->delete();
             $post->delete();
             return response()->json(['mensagem' => 'Postagem excluída com sucesso'], Response::HTTP_OK);
         }
