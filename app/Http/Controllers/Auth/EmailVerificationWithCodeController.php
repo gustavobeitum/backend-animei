@@ -15,7 +15,7 @@ class EmailVerificationWithCodeController extends Controller
         $user = $request->user();
 
         if ($user->email_verified_at !== null) {
-            return response()->json(['message' => 'Você já verificou seu e-mail'], Response::HTTP_CONFLICT);
+            return response()->json(['message' => 'Você já verificou seu e-mail', 'status' => 409], Response::HTTP_CONFLICT);
         }
 
         // Gera um código de 6 dígitos
@@ -29,8 +29,7 @@ class EmailVerificationWithCodeController extends Controller
              $message->to($user->email)->subject('Código de recuperação de senha');
          });
          
- 
-         return response()->json(['message' => 'Código enviado para o e-mail'], Response::HTTP_OK);
+         return response()->json(['message' => 'Código enviado para o e-mail', 'status' => 200], Response::HTTP_OK);
 
        
     }

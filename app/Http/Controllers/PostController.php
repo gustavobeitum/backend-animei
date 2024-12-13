@@ -16,11 +16,12 @@ class PostController extends Controller
      */
     public function index()
     {
-        $posts = Post::all();
+        //Busca todas as postagens retornando junto o Id e o username do user de quem fez o post
+        $posts = Post::with('user:id,username')->select('id', 'user_id', 'text', 'image', 'type', 'created_at')->paginate(8);
         if($posts->isEmpty()){
-            return response()->json(['messagem' => 'Não há postagens'], Response::HTTP_NOT_FOUND);
+            return response()->json(['message' => 'Nenhuma postagem encontrada', 'status' => 204],Response::HTTP_NO_CONTENT);
         }
-        return response()->json(['data' => $posts], Response::HTTP_OK);
+        return response()->json(['message' => 'Postagem encontrada', 'status' => 200, 'data' => $posts], Response::HTTP_OK);
     }
 
     /**
@@ -45,14 +46,14 @@ class PostController extends Controller
             $images_url = null;
         }
 
-        Post::create([
+        $post = Post::create([
             'user_id' => $request->user()->id,
             'text' => $request->text,
             'image' => $images_url,
             'type' => $request->type
         ]);
 
-        return response()->json(['data' => 'Post criado com sucesso'], Response::HTTP_CREATED);
+        return response()->json(['message' => 'Postagem criada', 'status' => 201,'data' => $post], Response::HTTP_CREATED);
     }
     /**
      * Display the specified resource.
@@ -62,11 +63,12 @@ class PostController extends Controller
      */
     public function show($id)
     {
-        $post = Post::find($id);
+        //Busca a postagem escolhida retornando junto o Id e o username do user de quem fez o post
+        $post = Post::with('user:id,username')->select('id', 'user_id', 'text', 'image', 'type', 'created_at')->find($id);
         if (!$post) {
-            return response()->json(['messagem' => 'Postagem não encontrada'], Response::HTTP_NOT_FOUND);
+            return response()->json(['message' => 'Nenhuma postagem encontrada', 'status' => 204],Response::HTTP_NO_CONTENT);
         }
-        return response()->json(['data' => $post], Response::HTTP_OK);
+        return response()->json(['message' => 'Postagem encontrada', 'status' => 200, 'data' => $post], Response::HTTP_OK);
     }
     /**
      * Update the specified resource in storage.
@@ -85,10 +87,10 @@ class PostController extends Controller
         ]);
 
         if (!$post) {
-            return response()->json(['messagem' => 'Postagem não encontrada'], Response::HTTP_NOT_FOUND);
+            return response()->json(['message' => 'Postagem não encontrada', 'status' => 204], Response::HTTP_NO_CONTENT);
         }
 
-        //verifica se foi enviado imagem, se sim exclui a antiga no storage, obtém o arquivo da nova imagem, armazena o arquivo e gera a URL pública da nova imagem
+        //verifica se foi enviado imagem, se sim exclui a antiga no storage/public, obtém o arquivo da nova imagem, armazena o arquivo
         if ($request->hasFile('image')) {
             if ($post->image) {
                 Storage::disk('public')->delete($post->image);
@@ -106,9 +108,9 @@ class PostController extends Controller
             ]);
             $post->save();
 
-            return response()->json(['data' => $post], Response::HTTP_OK);
+            return response()->json(['message' => 'Postagem atualizada', 'status' => 200,'data' => $post], Response::HTTP_OK);
         }
-        return response()->json(['mensagem' => 'Você não tem permissão para realizar esta ação'], Response::HTTP_NO_CONTENT);
+        return response()->json(['message' => 'Você não tem permissão para realizar esta ação', 'status' => 403], Response::HTTP_FORBIDDEN);
     }
     /**
      * Remove the specified resource from storage.
@@ -121,17 +123,18 @@ class PostController extends Controller
         $post = Post::find($id);
 
         if (!$post) {
-            return response()->json(['Erro' => 'Impossível deletar, postagem não encontrada'], Response::HTTP_NO_CONTENT);
+            return response()->json(['message' => 'Postagem não encontrada', 'status' => 204],Response::HTTP_NO_CONTENT);
         }
 
+        //Verifica se o usuario logado é o dono do post para excluir. Se sim apaga primerio a imagem salva no storage/public e em seguida o post e suas dependencias.
         if ($request->user()->id == $post->user_id) {
             if ($post->image) {
                 Storage::disk('public')->delete($post->image);
             }
             $post->likes()->delete();
             $post->delete();
-            return response()->json(['mensagem' => 'Postagem excluída com sucesso'], Response::HTTP_OK);
+            return response()->json(['message' => 'Postagem excluída com sucesso', 'status' => 200], Response::HTTP_OK);
         }
-        return response()->json(['mensagem' => 'Você não tem permissão para realizar esta ação'], Response::HTTP_NO_CONTENT);
+        return response()->json(['message' => 'Você não tem permissão para realizar esta ação', 'status' => '403'], Response::HTTP_FORBIDDEN);
     }
 }

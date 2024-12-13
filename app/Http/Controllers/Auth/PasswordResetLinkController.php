@@ -28,6 +28,6 @@ class PasswordResetLinkController extends Controller
         });
         
 
-        return response()->json(['message' => 'Código enviado para o e-mail'], Response::HTTP_OK);
+        return response()->json(['message' => 'Código enviado para o e-mail', 'status' => 200], Response::HTTP_OK);
     }
 }

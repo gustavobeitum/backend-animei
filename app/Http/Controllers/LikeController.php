@@ -16,10 +16,8 @@ class LikeController extends Controller
 
         // Verifica se o post existe (supondo que há um modelo Post)
         if (!Post::find($postId)) {
-            return response()->json(['messagem' => 'Post não encontrado'], Response::HTTP_NOT_FOUND);
+            return response()->json(['message' => 'Post não encontrado','status' => 204], Response::HTTP_NO_CONTENT);
         }
-
-
         // Verifica se já existe uma curtida 
         $like = Like::where('user_id', $user->id)->where('post_id', $postId)->first();
 
@@ -27,7 +25,7 @@ class LikeController extends Controller
             // Opção de descurtir
             $like->delete();
             $this->updateLikeCountCache($postId);
-            return response()->json(['messagem' => 'Curtida removida'], Response::HTTP_OK);
+            return response()->json(['message' => 'Curtida removida', 'status' => 200], Response::HTTP_OK);
         } else {
             // Opção de curtir
             Like::create([
@@ -35,7 +33,7 @@ class LikeController extends Controller
                 'post_id' => $postId,
             ]);
             $this->updateLikeCountCache($postId);
-            return response()->json(['messagem' => 'Curtida adicionada'], Response::HTTP_OK);
+            return response()->json(['message' => 'Curtida adicionada', 'status' => 200], Response::HTTP_OK);
         }
     }
 
@@ -47,7 +45,7 @@ class LikeController extends Controller
             return Like::where('post_id', $postId)->count();
         });
 
-        return response()->json(['likes' => $count]);
+        return response()->json(['message' => 'Contagem feita com sucesso', 'status' => 200,'likes' => $count]);
     }
 
     // Atualiza o cache da contagem de curtidas

@@ -15,8 +15,11 @@ class CommentController extends Controller
      */
     public function index()
     {
-        $comments = Comment::paginate(2);
-        return response()->json(['data' => $comments], Response::HTTP_OK);
+        $comments = Comment::all();
+        if($comments->isEmpty()){
+            return response()->json(['message' => 'Comentários não encontrado', 'status' => 204],Response::HTTP_NO_CONTENT);
+        }
+        return response()->json(['message' => 'Comentários encontrado', 'status' => 200,'data' => $comments], Response::HTTP_OK);
     }
 
     /**
@@ -39,7 +42,7 @@ class CommentController extends Controller
             'comment' => $request->comment
         ]);
 
-        return response()->json(['data' => $comment], Response::HTTP_CREATED);
+        return response()->json(['message' => 'Comentário criado', 'status' => 201,'data' => $comment], Response::HTTP_CREATED);
     }
 
     /**
@@ -52,9 +55,9 @@ class CommentController extends Controller
     {
         $comment = Comment::with('answers')->find($id);
         if (!$comment) {
-            return response()->json(['messagem' => 'Comentario não encontrado'], Response::HTTP_NO_CONTENT);
+            return response()->json(['message' => 'Comentario não encontrado', 'status' => 204], Response::HTTP_NO_CONTENT);
         }
-        return response()->json(['data' => $comment], Response::HTTP_OK);
+        return response()->json(['message' => 'Comentário encontrado', 'status' => 200,'data' => $comment], Response::HTTP_OK);
     }
 
     /**
@@ -73,16 +76,17 @@ class CommentController extends Controller
         $comment = Comment::find($id);
 
         if (!$comment) {
-            return response()->json(['messagem' => 'Comentário não encontrado'], Response::HTTP_NO_CONTENT);
+            return response()->json(['message' => 'Comentário não encontrado', 'status' => 204], Response::HTTP_NO_CONTENT);
         }
 
+        //Verifica se o usuario logado é o dono do comentário para poder alterar
         if ($request->user()->id == $comment->user_id) {
             $comment->comment = $request->comment;
             $comment->save();
 
-            return response()->json(['data' => $comment], Response::HTTP_OK);
+            return response()->json(['message' => 'Comentário atualizado', 'status' => 200,'data' => $comment], Response::HTTP_OK);
         }
-        return response()->json(['messagem' => 'Você não possui permissão para editar este comentário'], Response::HTTP_NO_CONTENT);
+        return response()->json(['message' => 'Você não possui permissão para editar este comentário', 'status' => 403], Response::HTTP_FORBIDDEN);
     }
 
     /**
@@ -95,14 +99,14 @@ class CommentController extends Controller
     {
         $comment = Comment::find($id);
         if (!$comment) {
-            return response()->json(['Erro' => 'Impossível deletar, comentário não encontrado'], Response::HTTP_NO_CONTENT);
+            return response()->json(['message' => 'Comentário não encontrado','status' => 204], Response::HTTP_NO_CONTENT);
         }
         if ($request->user()->id == $comment->user_id) {
             $comment->likesComment()->delete();
             $comment->answers()->delete();
             $comment->delete();
-            return response()->json(['messagem' => 'Comentário deletado com sucesso']);
+            return response()->json(['message' => 'Comentário deletado com sucesso','status' => 200], Response::HTTP_OK);
         }
-        return response()->json(['messagem' => 'Você não possui permissão para deletar este comentário'], Response::HTTP_NO_CONTENT);
+        return response()->json(['message' => 'Você não possui permissão para deletar este comentário', 'status' => 403], Response::HTTP_FORBIDDEN);
     }
 }

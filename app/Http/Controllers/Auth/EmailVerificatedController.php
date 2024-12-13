@@ -22,7 +22,7 @@ class EmailVerificatedController extends Controller
         // Verifica o código no cache
         $cachedCode = Cache::get("email_verification_code_{$user->email}");
         if (!$cachedCode || $cachedCode != $code) {
-            return response()->json(['message' => 'Código inválido ou expirado'], Response::HTTP_BAD_REQUEST);
+            return response()->json(['message' => 'Código inválido ou expirado','status' => 400], Response::HTTP_BAD_REQUEST);
         }
         //Salva o dia e hora que foi feito a confirmação do email
         $user->email_verified_at = time();
@@ -31,6 +31,6 @@ class EmailVerificatedController extends Controller
         // Remove o código do cache
         Cache::forget("email_verification_code_{$user->email}");
 
-        return response()->json(['message' => 'Email verificado com sucesso'], Response::HTTP_OK);
+        return response()->json(['message' => 'Email verificado com sucesso', 'status' => 200], Response::HTTP_OK);
     }
 }

@@ -25,7 +25,7 @@ class NewPasswordController extends Controller
         // Verifica o código no cache
         $cachedCode = Cache::get("password_reset_code_{$email}");
         if (!$cachedCode || $cachedCode != $code) {
-            return response()->json(['message' => 'Código inválido ou expirado'], Response::HTTP_BAD_REQUEST);
+            return response()->json(['message' => 'Código inválido ou expirado', 'status' =>400], Response::HTTP_BAD_REQUEST);
         }
 
         // Atualiza a senha do usuário
@@ -36,6 +36,6 @@ class NewPasswordController extends Controller
         // Remove o código do cache
         Cache::forget("password_reset_code_{$email}");
 
-        return response()->json(['message' => 'Senha redefinida com sucesso'], Response::HTTP_OK);
+        return response()->json(['message' => 'Senha redefinida com sucesso', 'status' => 200], Response::HTTP_OK);
     }
 }

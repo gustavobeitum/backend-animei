@@ -16,8 +16,10 @@ class AnswerController extends Controller
     public function index()
     {
         $answers = Answer::all();
-
-        return response()->json(['data' => $answers], Response::HTTP_OK);
+        if($answers->isEmpty()){
+            return response()->json(['message' => 'Resposta não encontrada', 'status' => 204],Response::HTTP_NO_CONTENT);
+        }
+        return response()->json(['message' => 'Respostas encontrada', 'status' => 200,'data' => $answers], Response::HTTP_OK);
     }
     /**
      * Store a newly created resource in storage.
@@ -38,7 +40,7 @@ class AnswerController extends Controller
             'response' => $request->response,
         ]);
 
-        return response()->json(['data' => $answer], Response::HTTP_CREATED);
+        return response()->json(['message' => 'Resposta criada', 'status' => 201,'data' => $answer], Response::HTTP_CREATED);
     }
     /**
      * Display the specified resource.
@@ -50,10 +52,10 @@ class AnswerController extends Controller
     {
         $answer = Answer::find($id);
         if (!$answer) {
-            return response()->json(['messagem' => 'Resposta não encontrada'], Response::HTTP_NO_CONTENT);
+            return response()->json(['message' => 'Resposta não encontrada', 'status' => 204], Response::HTTP_NO_CONTENT);
         }
 
-        return response()->json(['data' => $answer], Response::HTTP_OK);
+        return response()->json(['message' => 'Resposta encontrada', 'status' => 200,'data' => $answer], Response::HTTP_OK);
     }
     /**
      * Update the specified resource in storage.
@@ -69,16 +71,17 @@ class AnswerController extends Controller
         ]);
         $answer = Answer::find($id);
         if (!$answer) {
-            return response()->json(['Erro' => 'Impossível realizar a atualização, postagem não encontrada'], Response::HTTP_NO_CONTENT);
+            return response()->json(['message' => 'Resposta não encontrada', 'status' => 204], Response::HTTP_NO_CONTENT);
         }
 
+        //Verifica se o usuario logado é o dono da resposta para poder alterar
         if ($request->user()->id == $answer->user_id) {
             $answer->response = $request->response;
             $answer->save();
 
-            return response()->json(['data' => $answer], Response::HTTP_OK);
+            return response()->json(['message' => 'Resposta atualizada', 'status' => 200,'data' => $answer], Response::HTTP_OK);
         }
-        return response()->json(['mensagem' => 'Você não possui permissão para alterar essa resposta'], Response::HTTP_NO_CONTENT);
+        return response()->json(['message' => 'Você não possui permissão para alterar essa resposta','status' => 403], Response::HTTP_FORBIDDEN);
     }
     /**
      * Remove the specified resource from storage.
@@ -90,14 +93,14 @@ class AnswerController extends Controller
     {
         $answer = Answer::find($id);
         if (!$answer) {
-            return response()->json(['messagem' => 'Resposta não encontrada'], Response::HTTP_NO_CONTENT);
+            return response()->json(['message' => 'Resposta não encontrada','status' => 204], Response::HTTP_NO_CONTENT);
         }
 
         if ($request->user()->id == $answer->user_id) {
             $answer->delete();
 
-            return response()->json(['messagem' => 'Resposta excluída com sucesso']);
+            return response()->json(['message' => 'Resposta deletada com sucesso','status' => 200], Response::HTTP_OK);
         }
-        return response()->json(['messagem' => 'Você não possui permissão para deletar este comentário'], Response::HTTP_NO_CONTENT);
+        return response()->json(['message' => 'Você não possui permissão para deletar este comentário', 'status' => 403], Response::HTTP_FORBIDDEN);
     }
 }
