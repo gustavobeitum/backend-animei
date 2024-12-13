@@ -18,7 +18,7 @@ class UserController extends Controller
     public function index()
     {
         $users = User::all();
-        return response()->json(['data' => $users], Response::HTTP_OK);
+        return response()->json(['message' => 'Usuários encontrado', 'status' => 200,'data' => $users], Response::HTTP_OK);
     }
 
     /**
@@ -43,7 +43,7 @@ class UserController extends Controller
         ]);
         $token = $user->createToken('auth_token')->plainTextToken;
 
-        return response()->json(['data' => $user, 'token' => $token], Response::HTTP_CREATED);
+        return response()->json(['message' => 'Usuário criado','status' =>201, 'token' => $token,'data' => $user], Response::HTTP_CREATED);
     }
 
      /**
@@ -56,9 +56,9 @@ class UserController extends Controller
     {
         $user = User::find($id);
         if (!$user) {
-            return response()->json(['messagem' => 'Usuário não encontrado'], Response::HTTP_NO_CONTENT);
+            return response()->json(['message' => 'Usuário não encontrado','status' => 204], Response::HTTP_NO_CONTENT);
         }
-        return response()->json(['data' => $user], Response::HTTP_OK);
+        return response()->json(['message' => 'Usuário encontrado','status' => 200,'data' => $user], Response::HTTP_OK);
     }
 
     /**
@@ -72,7 +72,7 @@ class UserController extends Controller
     {
         $user = User::find($id);
         if (!$user) {
-            return response()->json(['messagem' => 'Impossível realizar atualização, usuário não encontrado'], Response::HTTP_NO_CONTENT);
+            return response()->json(['message' => 'Usuário não encontrado','status' => 204], Response::HTTP_NO_CONTENT);
         }
 
         $request->validate([
@@ -82,26 +82,31 @@ class UserController extends Controller
             'image' => ['file', 'image'],
             'email' => ['string', 'email', 'max:90', Rule::unique('users')->ignore($user->id)],
         ]);
+        //Verifica se o usuário que está logado é o mesmo que está tentando atualizar, para não permitir alterar dados de outros usuários
+        if ($user->id == $request->user()->id){
 
-        if ($request->hasFile('image')) {
-            if ($user->image) {
-                Storage::disk('public')->delete($user->image);
-            }
-            $image = $request->file('image');
-            $image_url = $image->store('images', 'public');
-        } else {
-            $image_url = $user->image;
-        };
+            //Se passar uma nova imagem, apaga a antiga e coloca a nova
+            if ($request->hasFile('image')) {
+                if ($user->image) {
+                    Storage::disk('public')->delete($user->image);
+                }
+                $image = $request->file('image');
+                $image_url = $image->store('images', 'public');
+            } else {
+                $image_url = $user->image;
+            };
 
-        $user->update([
-            'username' => $request->username ?: $user->username,
-            'name' => $request->name ?: $user->name,
-            'surname' => $request->surname ?: $user->surname,
-            'image' => $image_url,
-            'email' => $request->email ?: $user->email,
-        ]);
-        
-        return response()->json(['data' => $user], Response::HTTP_OK);
+            $user->update([
+                'username' => $request->username ?: $user->username,
+                'name' => $request->name ?: $user->name,
+                'surname' => $request->surname ?: $user->surname,
+                'image' => $image_url,
+                'email' => $request->email ?: $user->email,
+            ]);
+            
+            return response()->json(['message' => 'Usuário atualizado','status' => 200,'data' => $user], Response::HTTP_OK);
+        }
+        return response()->json(['message' => 'Você não tem permissão para atualizar este usuário', 'status' => 403], Response::HTTP_FORBIDDEN);
     }
 
     /**
@@ -110,25 +115,29 @@ class UserController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(Request $request,$id)
     {
         $user = User::find($id);
         if (!$user) {
-            return response()->json(['messagem' => 'Impossível deletar, usuário não encontrado'], Response::HTTP_NO_CONTENT);
+            return response()->json(['message' => 'Usuário não encontrado', 'status' =>204], Response::HTTP_NO_CONTENT);
         }
+        //Verifica se o usuário que está logado é o mesmo que está tentando deletar, para não permitir deletar dados de outros usuários.
+        if ($user->id == $request->user()->id) {
+            //Deleta a imagem do usuário no storage/public caso exista
+            if ($user->image) {
+                Storage::disk('public')->delete($user->image);
+            }
+            $user->posts()->delete();
+            $user->comments()->delete();
+            $user->answers()->delete();
+            $deleted = $user->delete();
 
-        if ($user->image) {
-            Storage::disk('public')->delete($user->image);
+            if ($deleted) {
+                return response()->json(['message' => 'Usuário deletado com sucesso','status' => 200], Response::HTTP_OK);
+            } else {
+                return response()->json(['message' => 'Erro ao deletar o usuário', 'status' => 500], Response::HTTP_INTERNAL_SERVER_ERROR);
+            }
         }
-        $user->posts()->delete();
-        $user->comments()->delete();
-        $user->answers()->delete();
-        $deleted = $user->delete();
-
-        if ($deleted) {
-            return response()->json(['messagem' => 'Usuário deletado com sucesso']);
-        } else {
-            return response()->json(['messagem' => 'Erro ao deletar o usuário'], Response::HTTP_INTERNAL_SERVER_ERROR);
-        }
+        return response()->json(['message' => 'Você não possui permissão para deletar este usuário', 'status' => 403], Response::HTTP_FORBIDDEN);
     }
 }
