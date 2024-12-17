@@ -11,22 +11,29 @@ use Illuminate\Support\Facades\Hash;
 
 class NewPasswordController extends Controller
 {
-    public function store(Request $request)
+    public function check_code_password(Request $request)
     {
         $request->validate([
-            'email' => ['required','email','exists:users','email'],
-            'code' => ['required','numeric'],
-            'password' => ['required','min:6','confirmed'],
+            'code' => ['required','numeric']
         ]);
 
-        $email = $request->email;
+        $user = $request->user();
         $code = $request->code;
 
         // Verifica o código no cache
-        $cachedCode = Cache::get("password_reset_code_{$email}");
+        $cachedCode = Cache::get("password_reset_code_{$user->email}");
         if (!$cachedCode || $cachedCode != $code) {
             return response()->json(['message' => 'Código inválido ou expirado', 'status' =>400], Response::HTTP_BAD_REQUEST);
-        }
+        } 
+        return response()->json(['message' => 'Código válido']);
+    }
+
+    public function newpassword(Request $request){
+        $request->validate([
+            'email' => ['required','email','exists:users','email'],
+            'password' => ['required','min:6','confirmed'],
+        ]);
+        $email = $request->email;
 
         // Atualiza a senha do usuário
         $user = User::where('email', $email)->first();
