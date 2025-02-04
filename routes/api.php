@@ -65,6 +65,7 @@ Route::middleware('auth:sanctum')->group(function(){
     Route::post('/verification-code-email', [EmailVerificatedController::class, 'verification_email']);
 
     Route::get('/post', [PostController::class, 'index']);
+    Route::get('/post/{post}/comments', [PostController::class,'comments_post']);
     Route::get('/post/{post_id}', [PostController::class, 'show']);
 
     Route::get('/countLikes-post/{post_id}', [LikeController::class, 'likeCount']);

@@ -7,15 +7,14 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 class CommentController extends Controller
-{
-    /**
+{    /**
      * Display a listing of the resource.
      *
      * @return \Illuminate\Http\Response
      */
     public function index()
     {
-        $comments = Comment::all();
+        $comments = Comment::with(['user:id,username'])->select('id', 'user_id', 'post_id', 'comment')->get();
         if($comments->isEmpty()){
             return response()->json(['message' => 'Comentários não encontrado', 'status' => 204],Response::HTTP_NO_CONTENT);
         }

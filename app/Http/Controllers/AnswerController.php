@@ -15,7 +15,7 @@ class AnswerController extends Controller
      */
     public function index()
     {
-        $answers = Answer::all();
+        $answers = Answer::with(['user:id,username'])->select('id', 'comment_id', 'user_id', 'response')->get();
         if($answers->isEmpty()){
             return response()->json(['message' => 'Resposta não encontrada', 'status' => 204],Response::HTTP_NO_CONTENT);
         }

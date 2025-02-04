@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Comment;
 use App\Models\Post;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -17,7 +18,7 @@ class PostController extends Controller
     public function index()
     {
         //Busca todas as postagens retornando junto o Id e o username do user de quem fez o post
-        $posts = Post::with('user:id,username')->select('id', 'user_id', 'text', 'image', 'type', 'created_at')->paginate(8);
+        $posts = Post::with(['user:id,username'])->select('id', 'user_id', 'text', 'image', 'type', 'created_at')->paginate(8);
         if($posts->isEmpty()){
             return response()->json(['message' => 'Nenhuma postagem encontrada', 'status' => 204],Response::HTTP_NO_CONTENT);
         }
@@ -49,7 +50,7 @@ class PostController extends Controller
         $post = Post::create([
             'user_id' => $request->user()->id,
             'text' => $request->text,
-            'image' => $images_url,
+            'image' => "storage/".$images_url,
             'type' => $request->type
         ]);
 
@@ -93,7 +94,8 @@ class PostController extends Controller
         //verifica se foi enviado imagem, se sim exclui a antiga no storage/public, obtém o arquivo da nova imagem, armazena o arquivo
         if ($request->hasFile('image')) {
             if ($post->image) {
-                Storage::disk('public')->delete($post->image);
+                $imagePath = str_replace('storage/', '', $post->image);
+                Storage::disk('public')->delete($imagePath);
             }
             $image = $request->file('image');
             $images_url = $image->store('images_post', 'public');
@@ -104,7 +106,7 @@ class PostController extends Controller
         if ($request->user()->id == $post->user_id) {
             $post->update([
                 'text' => $request->text ?: $post->text,
-                'image' => $images_url
+                'image' => "storage/".$images_url
             ]);
             $post->save();
 
@@ -129,7 +131,8 @@ class PostController extends Controller
         //Verifica se o usuario logado é o dono do post para excluir. Se sim apaga primerio a imagem salva no storage/public e em seguida o post e suas dependencias.
         if ($request->user()->id == $post->user_id) {
             if ($post->image) {
-                Storage::disk('public')->delete($post->image);
+                $imagePath = str_replace('storage/', '', $post->image);
+                Storage::disk('public')->delete($imagePath);
             }
             $post->likes()->delete();
             $post->delete();
@@ -137,4 +140,28 @@ class PostController extends Controller
         }
         return response()->json(['message' => 'Você não tem permissão para realizar esta ação', 'status' => '403'], Response::HTTP_FORBIDDEN);
     }
+    
+
+    public function comments_post($post_id)
+    {
+        // Busca os comentários do post especificado
+        $comments = Comment::where('post_id', $post_id)
+            ->with('user:id,username')
+            ->select('id', 'user_id', 'post_id', 'comment')
+            ->get();
+
+        if ($comments->isEmpty()) {
+            return response()->json([
+                'message' => 'Nenhum comentário encontrado',
+                'status' => 204
+            ], Response::HTTP_NO_CONTENT);
+        }
+
+        return response()->json([
+            'message' => 'Comentários encontrados',
+            'status' => 200,
+            'data' => $comments
+        ], Response::HTTP_OK);
+    }
+
 }
