@@ -12,25 +12,23 @@ class EmailVerificationWithCodeController extends Controller
 {
     public function request_code_email(Request $request)
     {
-        $user = $request->user();
+        $request->validate([
+            'email' => 'required|email'
+        ]);
 
-        if ($user->email_verified_at !== null) {
-            return response()->json(['message' => 'Você já verificou seu e-mail', 'status' => 409], Response::HTTP_CONFLICT);
-        }
+        $email = $request->input('email');
 
         // Gera um código de 6 dígitos
         $code = random_int(100000, 999999);
 
-         // Armazena o código no cache por 15 minutos
-         Cache::put("email_verification_code_{$user->email}", $code, 900);
+        // Armazena o código no cache por 15 minutos
+        Cache::put("email_verification_code_{$email}", $code, 900);
 
-         // Envia o código por e-mail
-         Mail::send('emails.confirmation-email', ['code' => $code], function ($message) use ($user) {
-             $message->to($user->email)->subject('Código de recuperação de senha');
-         });
-         
-         return response()->json(['message' => 'Código enviado para o e-mail', 'status' => 200], Response::HTTP_OK);
-
-       
+        // Envia o código por e-mail
+        Mail::send('emails.confirmation-email', ['code' => $code], function ($message) use ($email) {
+            $message->to($email)->subject('Código de recuperação de senha');
+        });
+        
+        return response()->json(['message' => 'Código enviado para o e-mail', 'status' => 200], Response::HTTP_OK);
     }
 }
